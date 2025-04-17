@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Rentabilidad | Daniel Financiero</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8fafc;
+        }
+        
+        .step-container {
+            display: none;
+        }
+        
+        .step-container.active {
+            display: block;
+        }
+        
+        .progress-bar {
+            transition: width 0.5s ease-in-out;
+        }
+        
+        .input-field {
+            transition: all 0.3s ease;
+        }
+        
+        .input-field:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+        }
+        
+        .card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .result-card {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.5s forwards;
+        }
+        
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .result-card:nth-child(1) { animation-delay: 0.1s; }
+        .result-card:nth-child(2) { animation-delay: 0.2s; }
+        .result-card:nth-child(3) { animation-delay: 0.3s; }
+        .result-card:nth-child(4) { animation-delay: 0.4s; }
+        .result-card:nth-child(5) { animation-delay: 0.5s; }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-4 px-6 shadow-md">
+            <div class="container mx-auto flex justify-between items-center">
+                <div class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <h1 class="text-xl font-bold">Daniel Financiero</h1>
+                </div>
+                <div class="hidden md:block">
+                    <span class="text-lg font-semibold">Simulador de Rentabilidad para Emprendedores</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-grow container mx-auto px-4 py-6">
+            <!-- Progress Bar -->
+            <div class="mb-8">
+                <div class="flex justify-between mb-2 text-sm">
+                    <span id="step-label" class="font-medium">Paso 1 de 5: Productos y Servicios</span>
+                    <span id="progress-percentage">20%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                    <div id="progress-bar" class="progress-bar bg-blue-600 h-2.5 rounded-full" style="width: 20%"></div>
+                </div>
+            </div>
+
+            <!-- Step 1: Products and Services -->
+            <div id="step1" class="step-container active">
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h2 class="text-xl font-semibold mb-4">Productos y Servicios</h2>
+                    <p class="text-gray-600 mb-6">Ingresa los productos o servicios que ofreces, su precio de venta, costo y unidades vendidas mensualmente.</p>
+                    
+                    <div id="products-container">
+                        <!-- Product template will be added here -->
+                    </div>
+                    
+                    <button id="add-product" class="mt-4 flex items-center text-blue-600 hover:text-blue-800">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                        </svg>
+                        Agregar otro producto/servicio
+                    </button>
+                </div>
+                
+                <div class="flex justify-end">
+                    <button id="next-step1" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md transition duration-300 flex items-center">
+                        Siguiente
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 2: Monthly Expenses -->
+            <div id="step2" class="step-container">
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h2 class="text-xl font-semibold mb-4">Gastos Mensuales</h2>
+                    <p class="text-gray-600 mb-6">Ingresa los gastos fijos mensuales de tu negocio.</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-gray-700 mb-2">Alquiler</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-600">$</span>
+                                <input type="number" id="rent" class="input-field w-full pl-8 pr-4 py-2 border rounded-md focus:outline-none" placeholder="0">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-700 mb-2">Servicios (luz, agua, internet)</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-600">$</span>
+                                <input type="number" id="utilities" class="input-field w-full pl-8 pr-4 py-2 border rounded-md focus:outline-none" placeholder="0">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-700 mb-2">Salarios</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-600">$</span>
+                                <input type="number" id="salaries" class="input-field w-full pl-8 pr-4 py-2 border rounded-md focus:outline-none" placeholder="0">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-700 mb-2">Marketing y Publicidad</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-600">$</span>
+                                <input type="number" id="marketing" class="input-field w-full pl-8 pr-4 py-2 border rounded-md focus:outline-none" placeholder="0">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-700 mb-2">Transporte</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-600">$</span>
+                                <input type="number" id="transport" class="input-field w-full pl-8 pr-4 py-2 border rounded-md focus:outline-none" placeholder="0">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-700 mb-2">Otros gastos</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-600">$</span>
+                                <input type="number" id="other-expenses" class="input-field w-full pl-8 pr-4 py-2 border rounded-md focus:outline-none" placeholder="0">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 p-4 bg-blue-50 rounded-md">
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium">Total Gastos Mensuales:</span>
+                            <span id="total-expenses" class="font-semibold text-lg">$0</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between">
+                    <button id="prev-step2" class="border border-gray-300 hover:bg-gray-100 text-gray-700 font-medium py-2 px-6 rounded-md transition duration-300 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                        </svg>
+                        Anterior
+                    </button>
+                    <button id="next-step2" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md transition duration-300 flex items-center">
+                        Siguiente
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 3: Initial Investment -->
+            <div id="step3" class="step-container">
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h2 class="text-xl font-semibold mb-4">Inversión Inicial</h2>
+                    <p class="text-gray-600 mb-6">Ingresa los detalles de tu inversión inicial y la vida útil estimada para calcular la depreciación.</p>
+                    
+                    <div id="investments-container">
+                        <!-- Investment items will be added here -->
+                    </div>
+                    
+                    <button id="add-investment" class="mt-4 flex items-center text-blue-600 hover:text-blue-800">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                        </svg>
+                        Agregar otro ítem de inversión
+                    </button>
+                    
+                    <div class="mt-6 p-4 bg-blue-50 rounded-md">
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium">Total Inversión Inicial:</span>
+                            <span id="total-investment" class="font-semibold text-lg">$0</span>
+                        </div>
+                        <div class="flex justify-between items-center mt-2">
+                            <span class="font-medium">Depreciación Mensual:</span>
+                            <span id="monthly-depreciation" class="font-semibold">$0</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between">
+                    <button id="prev-step3" class="border border-gray-300 hover:bg-gray-100 text-gray-700 font-medium py-2 px-6 rounded-md transition duration-300 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                        </svg>
+                        Anterior
+                    </button>
+                    <button id="next-step3" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md transition duration-300 flex items-center">
+                        Siguiente
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 4: Economic Variables -->
+            <div id="step4" class="step-container">
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h2 class="text-xl font-semibold mb-4">Variables Económicas</h2>
+                    <p class="text-gray-600 mb-6">Ajusta las variables económicas para personalizar tus proyecciones.</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-gray-700 mb-2">
+                                Inflación Anual (%)
+                                <span class="tooltip ml-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500 inline" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span class="tooltip-text">Aumento general de precios en la economía</span>
+                                </span>
+                            </label>
+                            <input type="number" id="inflation" class="input-field w-full px-4 py-2 border rounded-md focus:outline-none" value="5" min="0" max="100">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-700 mb-2">
+                                Crecimiento Anual del Negocio (%)
+                                <span class="tooltip ml-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500 inline" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span class="tooltip-text">Estimación de crecimiento anual de ventas</span>
+                                </span>
+                            </label>
+                            <input type="number" id="growth-rate" class="input-field w-full px-4 py-2 border rounded-md focus:outline-none" value="5" min="0" max="100">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-700 mb-2">
+                                Rentabilidad Deseada (%)
+                                <span class="tooltip ml-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500 inline" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span class="tooltip-text">Porcentaje de ganancia que deseas obtener sobre tu inversión</span>
+                                </span>
+                            </label>
+                            <input type="number" id="desired-profit" class="input-field w-full px-4 py-2 border rounded-md focus:outline-none" value="20" min="0" max="100">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-700 mb-2">
+                                Tasa de Descuento (%)
+                                <span class="tooltip ml-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500 inline" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span class="tooltip-text">Tasa para calcular el valor presente de flujos futuros</span>
+                                </span>
+                            </label>
+                            <input type="number" id="discount-rate" class="input-field w-full px-4 py-2 border rounded-md focus:outline-none" value="10" min="0" max="100">
+                            <p class="text-gray-600 text-sm mt-2">La tasa de descuento es el porcentaje utilizado para calcular el valor presente de los flujos futuros. Representa el costo de oportunidad de invertir en un proyecto en lugar de otras alternativas. Un valor típico oscila entre el 8% y el 12% dependiendo del riesgo del proyecto.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between">
+                    <button id="prev-step4" class="border border-gray-300 hover:bg-gray-100 text-gray-700 font-medium py-2 px-6 rounded-md transition duration-300 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                        </svg>
+                        Anterior
+                    </button>
+                    <button id="calculate-results" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md transition duration-300 flex items-center">
+                        Calcular Resultados
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M6.672 1.911a1 1 0 10-1.932.518l.259.966a1 1 0 001.932-.518l-.26-.966zM2.429 4.74a1 1 0 10-.517 1.932l.966.259a1 1 0 00.517-1.932l-.966-.26zm8.814-.569a1 1 0 00-1.415-1.414l-.707.707a1 1 0 101.415 1.415l.707-.708zm-7.071 7.072l.707-.707A1 1 0 003.465 9.12l-.708.707a1 1 0 001.415 1.415zm3.2-5.171a1 1 0 00-1.3 1.3l4 10a1 1 0 001.823.075l1.38-2.759 3.018 3.02a1 1 0 001.414-1.415l-3.019-3.02 2.76-1.379a1 1 0 00-.076-1.822l-10-4z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 5: Results -->
+            <div id="step5" class="step-container">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold mb-2">Resultados de tu Simulación</h2>
+                    <p class="text-gray-600">Aquí tienes un análisis detallado de la rentabilidad de tu negocio.</p>
+                </div>
+                
+                <!-- Key Indicators -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    <div id="profit-margin-card" class="result-card bg-white rounded-lg shadow-md p-6 border-t-4">
+                        <h3 class="text-lg font-semibold mb-2">Margen de Ganancia</h3>
+                        <div class="flex items-end">
+                            <span id="profit-margin-value" class="text-3xl font-bold">0%</span>
+                            <span id="profit-margin-status" class="ml-2 px-2 py-1 text-xs font-medium rounded-full">Neutral</span>
+                        </div>
+                        <p id="profit-margin-description" class="mt-2 text-gray-600 text-sm">El porcentaje de ganancia sobre tus ventas.</p>
+                    </div>
+                    
+                    <div id="roi-card" class="result-card bg-white rounded-lg shadow-md p-6 border-t-4">
+                        <h3 class="text-lg font-semibold mb-2">Retorno sobre Inversión</h3>
+                        <div class="flex items-end">
+                            <span id="roi-value" class="text-3xl font-bold">0%</span>
+                            <span id="roi-status" class="ml-2 px-2 py-1 text-xs font-medium rounded-full">Neutral</span>
+                        </div>
+                        <p id="roi-description" class="mt-2 text-gray-600 text-sm">Cuánto recuperas por cada peso invertido.</p>
+                    </div>
+                    
+                    <div id="breakeven-card" class="result-card bg-white rounded-lg shadow-md p-6 border-t-4">
+                        <h3 class="text-lg font-semibold mb-2">Punto de Equilibrio</h3>
+                        <div class="flex items-end">
+                            <span id="breakeven-value" class="text-3xl font-bold">$0</span>
+                        </div>
+                        <p id="breakeven-description" class="mt-2 text-gray-600 text-sm">Ventas mensuales necesarias para cubrir gastos.</p>
+                    </div>
+
+                    <!-- Punto de Equilibrio en Unidades -->
+                    <div id="breakeven-units-card" class="result-card bg-white rounded-lg shadow-md p-6 border-t-4 border-blue-500">
+                        <h3 class="text-lg font-semibold mb-2">Punto de Equilibrio en Unidades</h3>
+                        <div class="flex items-end">
+                            <span id="breakeven-units-value" class="text-3xl font-bold">0</span>
+                        </div>
+                        <p id="breakeven-units-description" class="mt-2 text-gray-600 text-sm">Cantidad mínima de unidades que debes vender para cubrir tus gastos. Un valor óptimo es mantener este punto por debajo del 50% de tu capacidad de ventas.</p>
+                    </div>
+
+                    <!-- Valor Presente Neto (VPN) -->
+                    <div id="npv-card" class="result-card bg-white rounded-lg shadow-md p-6 border-t-4 border-green-500">
+                        <h3 class="text-lg font-semibold mb-2">Valor Presente Neto (VPN)</h3>
+                        <div class="flex items-end">
+                            <span id="npv-value" class="text-3xl font-bold">$0</span>
+                        </div>
+                        <p id="npv-description" class="mt-2 text-gray-600 text-sm">Indica si tu proyecto generará valor en el tiempo. Un VPN positivo es una señal favorable. El valor óptimo es cualquier cifra mayor a $0.</p>
+                    </div>
+
+                    <!-- Margen de Contribución -->
+                    <div id="contribution-margin-card" class="result-card bg-white rounded-lg shadow-md p-6 border-t-4 border-purple-500">
+                        <h3 class="text-lg font-semibold mb-2">Margen de Contribución</h3>
+                        <div class="flex items-end">
+                            <span id="contribution-margin-value" class="text-3xl font-bold">0%</span>
+                        </div>
+                        <p id="contribution-margin-description" class="mt-2 text-gray-600 text-sm">Porcentaje que queda después de cubrir los costos variables, útil para cubrir gastos fijos y generar ganancias. Un valor óptimo es superior al 30%.</p>
+                    </div>
+
+                    <!-- Tiempo de Recuperación de la Inversión -->
+                    <div id="investment-recovery-card" class="result-card bg-white rounded-lg shadow-md p-6 border-t-4 border-orange-500">
+                        <h3 class="text-lg font-semibold mb-2">Tiempo de Recuperación de la Inversión</h3>
+                        <div class="flex items-end">
+                            <span id="investment-recovery-value" class="text-3xl font-bold">0</span>
+                            <span class="ml-2 text-lg">años</span>
+                        </div>
+                        <p id="investment-recovery-description" class="mt-2 text-gray-600 text-sm">Tiempo estimado en años para recuperar la inversión inicial. Un valor óptimo es menor a 5 años.</p>
+                    </div>
+                </div>
+                
+                <!-- Charts -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <div class="result-card bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-lg font-semibold mb-4">Proyección a 12 Meses</h3>
+                        <div class="h-64">
+                            <canvas id="monthly-chart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="result-card bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-lg font-semibold mb-4">Proyección a 5 Años</h3>
+                        <div class="h-64">
+                            <canvas id="yearly-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recommendations -->
+                <div class="result-card bg-white rounded-lg shadow-md p-6 mb-8">
+                    <h3 class="text-lg font-semibold mb-4">Recomendaciones para tu Negocio</h3>
+                    <ul id="recommendations-list" class="space-y-3">
+                        <!-- Recommendations will be added here -->
+                    </ul>
+                </div>
+                
+                <!-- Call to Action -->
+                <div class="result-card bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg shadow-md p-6 text-white">
+                    <h3 class="text-xl font-semibold mb-2">¿Quieres mejorar aún más tu rentabilidad?</h3>
+                    <p class="mb-4">Agenda una consultoría personalizada con Daniel para llevar tu negocio al siguiente nivel.</p>
+                    <a href="#" class="inline-block bg-white text-blue-700 font-medium py-2 px-6 rounded-md hover:bg-gray-100 transition duration-300">Agendar Consultoría</a>
+                </div>
+                
+                <div class="flex justify-between mt-8">
+                    <button id="prev-step5" class="border border-gray-300 hover:bg-gray-100 text-gray-700 font-medium py-2 px-6 rounded-md transition duration-300 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                        </svg>
+                        Volver a Editar
+                    </button>
+                    <button id="restart-simulation" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md transition duration-300 flex items-center">
+                        Nueva Simulación
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-gray-800 text-white py-4 px-6">
+            <div class="container mx-auto text-center">
+                <p>&copy; 2025 Daniel Financiero | Simulador de Rentabilidad para Emprendedores</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Global variables
+            let currentStep = 1;
+            const totalSteps = 5;
+            let productCounter = 0;
+            let investmentCounter = 0;
+            let simulationData = {
+                products: [],
+                expenses: {},
+                investments: [],
+                variables: {},
+                results: {}
+            };
+            
+            // Initialize the first product and investment
+            addProduct();
+            addInvestment();
+            
+            // Step navigation
+            function updateProgress(step) {
+                const progressPercentage = (step / totalSteps) * 100;
+                document.getElementById('progress-bar').style.width = `${progressPercentage}%`;
+                document.getElementById('progress-percentage').textContent = `${Math.round(progressPercentage)}%`;
+                
+                const stepLabels = [
+                    'Paso 1 de 5: Productos y Servicios',
+                    'Paso 2 de 5: Gastos Mensuales',
+                    'Paso 3 de 5: Inversión Inicial',
+                    'Paso 4 de 5: Variables Económicas',
+                    'Paso 5 de 5: Resultados'
+                ];
+                
+                document.getElementById('step-label').textContent = stepLabels[step - 1];
+                
+                // Hide all steps
+                document.querySelectorAll('.step-container').forEach(el => {
+                    el.classList.remove('active');
+                });
+                
+                // Show current step
+                document.getElementById(`step${step}`).classList.add('active');
+                
+                currentStep = step;
+            }
+            
+            // Add product
+            function addProduct() {
+                const container = document.getElementById('products-container');
+                const productId = productCounter++;
+                
+                const productDiv = document.createElement('div');
+                productDiv.className = 'product-item mb-6 p-4 border border-gray-200 rounded-md';
+                productDiv.dataset.id = productId;
+                
+                productDiv.innerHTML = `
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="font-medium">Producto/Servicio #${productId + 1}</h4>
+                        ${productId > 0 ? `
+                            <button class="remove-product text-red-500 hover:text-red-700" data-id="${productId}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        ` : ''}
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-gray-700 mb-2">Nombre</label>
+                            <input type="text" class="product-name input-field w-full px-4 py-2 border rounded-md focus:outline-none" placeholder="Ej: Consultoría, Producto A...">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">Precio de Venta ($)</label>
+                            <input type="number" class="product-price input-field w-full px-4 py-2 border rounded-md focus:outline-none" placeholder="0" min="0">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">Costo Unitario ($)</label>
+                            <input type="number" class="product-cost input-field w-full px-4 py-2 border rounded-md focus:outline-none" placeholder="0" min="0">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">Unidades Vendidas (mensual)</label>
+                            <input type="number" class="product-units input-field w-full px-4 py-2 border rounded-md focus:outline-none" placeholder="0" min="0">
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(productDiv);
+                
+                // Add event listener for remove button
+                const removeBtn = productDiv.querySelector('.remove-product');
+                if (removeBtn) {
+                    removeBtn.addEventListener('click', function() {
+                        const id = this.dataset.id;
+                        const itemToRemove = document.querySelector(`.product-item[data-id="${id}"]`);
+                        itemToRemove.remove();
+                    });
+                }
+            }
+            
+            // Add investment
+            function addInvestment() {
+                const container = document.getElementById('investments-container');
+                const investmentId = investmentCounter++;
+                
+                const investmentDiv = document.createElement('div');
+                investmentDiv.className = 'investment-item mb-6 p-4 border border-gray-200 rounded-md';
+                investmentDiv.dataset.id = investmentId;
+                
+                investmentDiv.innerHTML = `
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="font-medium">Ítem de Inversión #${investmentId + 1}</h4>
+                        ${investmentId > 0 ? `
+                            <button class="remove-investment text-red-500 hover:text-red-700" data-id="${investmentId}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        ` : ''}
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-gray-700 mb-2">Descripción</label>
+                            <input type="text" class="investment-name input-field w-full px-4 py-2 border rounded-md focus:outline-none" placeholder="Ej: Maquinaria, Mobiliario...">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">Monto ($)</label>
+                            <input type="number" class="investment-amount input-field w-full px-4 py-2 border rounded-md focus:outline-none" placeholder="0" min="0">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">Vida Útil (años)</label>
+                            <input type="number" class="investment-life input-field w-full px-4 py-2 border rounded-md focus:outline-none" placeholder="0" min="0">
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(investmentDiv);
+                
+                // Add event listener for remove button
+                const removeBtn = investmentDiv.querySelector('.remove-investment');
+                if (removeBtn) {
+                    removeBtn.addEventListener('click', function() {
+                        const id = this.dataset.id;
+                        const itemToRemove = document.querySelector(`.investment-item[data-id="${id}"]`);
+                        itemToRemove.remove();
+                        updateInvestmentTotals();
+                    });
+                }
+                
+                // Add event listeners for input changes
+                const amountInput = investmentDiv.querySelector('.investment-amount');
+                const lifeInput = investmentDiv.querySelector('.investment-life');
+                
+                amountInput.addEventListener('input', updateInvestmentTotals);
+                lifeInput.addEventListener('input', updateInvestmentTotals);
+            }
+            
+            // Update investment totals
+            function updateInvestmentTotals() {
+                let totalInvestment = 0;
+                let totalMonthlyDepreciation = 0;
+                
+                document.querySelectorAll('.investment-item').forEach(item => {
+                    const amount = parseFloat(item.querySelector('.investment-amount').value) || 0;
+                    const lifeYears = parseFloat(item.querySelector('.investment-life').value) || 1;
+                    
+                    totalInvestment += amount;
+                    
+                    // Calculate monthly depreciation (straight-line method)
+                    const monthlyDepreciation = amount / (lifeYears * 12);
+                    totalMonthlyDepreciation += monthlyDepreciation;
+                });
+                
+                document.getElementById('total-investment').textContent = `$${totalInvestment.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                document.getElementById('monthly-depreciation').textContent = `$${totalMonthlyDepreciation.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            }
+            
+            // Update expense totals
+            function updateExpenseTotals() {
+                const rent = parseFloat(document.getElementById('rent').value) || 0;
+                const utilities = parseFloat(document.getElementById('utilities').value) || 0;
+                const salaries = parseFloat(document.getElementById('salaries').value) || 0;
+                const marketing = parseFloat(document.getElementById('marketing').value) || 0;
+                const transport = parseFloat(document.getElementById('transport').value) || 0;
+                const otherExpenses = parseFloat(document.getElementById('other-expenses').value) || 0;
+                
+                const totalExpenses = rent + utilities + salaries + marketing + transport + otherExpenses;
+                
+                document.getElementById('total-expenses').textContent = `$${totalExpenses.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            }
+            
+            // Collect data from all steps
+            function collectData() {
+                // Step 1: Products
+                simulationData.products = [];
+                document.querySelectorAll('.product-item').forEach(item => {
+                    const name = item.querySelector('.product-name').value || 'Producto sin nombre';
+                    const price = parseFloat(item.querySelector('.product-price').value) || 0;
+                    const cost = parseFloat(item.querySelector('.product-cost').value) || 0;
+                    const units = parseFloat(item.querySelector('.product-units').value) || 0;
+                    
+                    simulationData.products.push({
+                        name,
+                        price,
+                        cost,
+                        units,
+                        revenue: price * units,
+                        totalCost: cost * units,
+                        profit: (price - cost) * units
+                    });
+                });
+                
+                // Step 2: Expenses
+                simulationData.expenses = {
+                    rent: parseFloat(document.getElementById('rent').value) || 0,
+                    utilities: parseFloat(document.getElementById('utilities').value) || 0,
+                    salaries: parseFloat(document.getElementById('salaries').value) || 0,
+                    marketing: parseFloat(document.getElementById('marketing').value) || 0,
+                    transport: parseFloat(document.getElementById('transport').value) || 0,
+                    otherExpenses: parseFloat(document.getElementById('other-expenses').value) || 0
+                };
+                
+                simulationData.expenses.total = Object.values(simulationData.expenses).reduce((sum, value) => sum + value, 0);
+                
+                // Step 3: Investments
+                simulationData.investments = [];
+                let totalDepreciation = 0;
+                
+                document.querySelectorAll('.investment-item').forEach(item => {
+                    const name = item.querySelector('.investment-name').value || 'Inversión sin nombre';
+                    const amount = parseFloat(item.querySelector('.investment-amount').value) || 0;
+                    const lifeYears = parseFloat(item.querySelector('.investment-life').value) || 1;
+                    const monthlyDepreciation = amount / (lifeYears * 12);
+                    
+                    totalDepreciation += monthlyDepreciation;
+                    
+                    simulationData.investments.push({
+                        name,
+                        amount,
+                        lifeYears,
+                        monthlyDepreciation
+                    });
+                });
+                
+                simulationData.investments.totalAmount = simulationData.investments.reduce((sum, inv) => sum + inv.amount, 0);
+                simulationData.investments.totalDepreciation = totalDepreciation;
+                
+                // Step 4: Variables
+                simulationData.variables = {
+                    inflation: parseFloat(document.getElementById('inflation').value) || 5,
+                    growthRate: parseFloat(document.getElementById('growth-rate').value) || 5,
+                    desiredProfit: parseFloat(document.getElementById('desired-profit').value) || 20,
+                    discountRate: parseFloat(document.getElementById('discount-rate').value) || 10
+                };
+                
+                return simulationData;
+            }
+            
+            // Calculate financial results
+            function calculateResults(data) {
+                const results = {};
+                
+                // Calculate total monthly revenue and costs
+                const totalRevenue = data.products.reduce((sum, product) => sum + product.revenue, 0);
+                const totalProductCosts = data.products.reduce((sum, product) => sum + product.totalCost, 0);
+                const totalFixedCosts = data.expenses.total;
+                const totalDepreciation = data.investments.totalDepreciation || 0;
+                
+                const totalCosts = totalProductCosts + totalFixedCosts + totalDepreciation;
+                const monthlyProfit = totalRevenue - totalCosts;
+                
+                // Calculate profit margin
+                results.profitMargin = totalRevenue > 0 ? (monthlyProfit / totalRevenue) * 100 : 0;
+                
+                // Calculate ROI
+                const totalInvestment = data.investments.reduce((sum, inv) => sum + inv.amount, 0);
+                results.roi = totalInvestment > 0 ? ((monthlyProfit * 12) / totalInvestment) * 100 : 0;
+                
+                // Calculate break-even point
+                const averageMargin = totalRevenue > 0 ? 
+                    (totalRevenue - totalProductCosts) / totalRevenue : 0;
+                
+                results.breakEvenRevenue = averageMargin > 0 ? 
+                    (totalFixedCosts + totalDepreciation) / averageMargin : 0;
+
+                // Calculate break-even units
+                results.breakEvenUnits = averageMargin > 0 ? 
+                    results.breakEvenRevenue / (totalRevenue / data.products.reduce((sum, product) => sum + product.units, 0)) : 0;
+
+                // Calculate contribution margin
+                results.contributionMargin = totalRevenue > 0 ? 
+                    ((totalRevenue - totalProductCosts) / totalRevenue) * 100 : 0;
+
+                // Calculate investment recovery time
+                results.investmentRecoveryTime = monthlyProfit > 0 ? 
+                    totalInvestment / (monthlyProfit * 12) : Infinity;
+                
+                // Monthly projections (12 months)
+                results.monthlyProjections = [];
+                let cumulativeProfit = 0;
+                
+                for (let i = 1; i <= 12; i++) {
+                    const monthlyGrowthFactor = 1 + ((data.variables.growthRate / 100) / 12);
+                    const inflationFactor = 1 + ((data.variables.inflation / 100) / 12);
+                    
+                    const projectedRevenue = totalRevenue * Math.pow(monthlyGrowthFactor, i-1);
+                    const projectedProductCosts = totalProductCosts * Math.pow(inflationFactor, i-1);
+                    const projectedFixedCosts = totalFixedCosts * Math.pow(inflationFactor, i-1);
+                    
+                    const projectedProfit = projectedRevenue - projectedProductCosts - projectedFixedCosts - totalDepreciation;
+                    cumulativeProfit += projectedProfit;
+                    
+                    results.monthlyProjections.push({
+                        month: i,
+                        revenue: projectedRevenue,
+                        costs: projectedProductCosts + projectedFixedCosts + totalDepreciation,
+                        profit: projectedProfit,
+                        cumulativeProfit
+                    });
+                }
+                
+                // Yearly projections (5 years)
+                results.yearlyProjections = [];
+                let yearlyProfit = monthlyProfit * 12;
+                
+                for (let i = 1; i <= 5; i++) {
+                    const yearlyGrowthFactor = 1 + (data.variables.growthRate / 100);
+                    const yearlyInflationFactor = 1 + (data.variables.inflation / 100);
+                    
+                    const projectedYearlyRevenue = totalRevenue * 12 * Math.pow(yearlyGrowthFactor, i-1);
+                    const projectedYearlyProductCosts = totalProductCosts * 12 * Math.pow(yearlyInflationFactor, i-1);
+                    const projectedYearlyFixedCosts = totalFixedCosts * 12 * Math.pow(yearlyInflationFactor, i-1);
+                    const yearlyDepreciation = totalDepreciation * 12;
+                    
+                    yearlyProfit = projectedYearlyRevenue - projectedYearlyProductCosts - projectedYearlyFixedCosts - yearlyDepreciation;
+                    
+                    results.yearlyProjections.push({
+                        year: i,
+                        revenue: projectedYearlyRevenue,
+                        costs: projectedYearlyProductCosts + projectedYearlyFixedCosts + yearlyDepreciation,
+                        profit: yearlyProfit
+                    });
+                }
+                
+                // Calculate NPV (Net Present Value)
+                const discountRate = data.variables.discountRate / 100;
+                let npv = -totalInvestment; // Initial investment is negative cash flow
+                
+                results.yearlyProjections.forEach((yearData, index) => {
+                    npv += yearData.profit / Math.pow(1 + discountRate, index + 1);
+                });
+                
+                results.npv = npv;
+                
+                // Generate recommendations
+                results.recommendations = [];
+                
+                // Recommendation based on profit margin
+                if (results.profitMargin < 0) {
+                    results.recommendations.push({
+                        type: 'danger',
+                        text: 'Tu negocio está generando pérdidas. Considera reducir costos o aumentar precios.'
+                    });
+                } else if (results.profitMargin < 15) {
+                    results.recommendations.push({
+                        type: 'warning',
+                        text: 'Tu margen de ganancia es bajo. Evalúa estrategias para mejorar la rentabilidad.'
+                    });
+                } else {
+                    results.recommendations.push({
+                        type: 'success',
+                        text: '¡Buen trabajo! Tu margen de ganancia es saludable.'
+                    });
+                }
+                
+                // Recommendation based on ROI
+                if (results.roi < data.variables.desiredProfit) {
+                    results.recommendations.push({
+                        type: 'warning',
+                        text: `Tu retorno sobre inversión está por debajo de tu objetivo de ${data.variables.desiredProfit}%. Considera optimizar tu operación.`
+                    });
+                } else {
+                    results.recommendations.push({
+                        type: 'success',
+                        text: `¡Excelente! Tu retorno sobre inversión supera tu objetivo de ${data.variables.desiredProfit}%.`
+                    });
+                }
+                
+                // Recommendation based on NPV
+                if (results.npv < 0) {
+                    results.recommendations.push({
+                        type: 'danger',
+                        text: 'El Valor Presente Neto (VPN) es negativo. Este proyecto podría no ser viable financieramente a largo plazo.'
+                    });
+                } else {
+                    results.recommendations.push({
+                        type: 'success',
+                        text: 'El Valor Presente Neto (VPN) es positivo. El proyecto es financieramente viable.'
+                    });
+                }
+                
+                // Product-specific recommendations
+                const lowMarginProducts = data.products.filter(p => 
+                    p.price > 0 && ((p.price - p.cost) / p.price) < 0.2
+                );
+                
+                if (lowMarginProducts.length > 0) {
+                    const productNames = lowMarginProducts.map(p => p.name).join(', ');
+                    results.recommendations.push({
+                        type: 'warning',
+                        text: `Los siguientes productos tienen márgenes bajos: ${productNames}. Considera ajustar sus precios.`
+                    });
+                }
+                
+                // Fixed costs recommendation
+                const revenueToFixedCostsRatio = totalRevenue / totalFixedCosts;
+                if (revenueToFixedCostsRatio < 2) {
+                    results.recommendations.push({
+                        type: 'warning',
+                        text: 'Tus gastos fijos son altos en relación a tus ingresos. Busca formas de reducirlos o aumentar ventas.'
+                    });
+                }
+                
+                return results;
+            }
+            
+            // Display results
+            function displayResults(results) {
+                // Display key indicators
+                const profitMarginValue = document.getElementById('profit-margin-value');
+                const profitMarginStatus = document.getElementById('profit-margin-status');
+                const profitMarginCard = document.getElementById('profit-margin-card');
+                
+                profitMarginValue.textContent = `${results.profitMargin.toFixed(1)}%`;
+                
+                if (results.profitMargin < 0) {
+                    profitMarginStatus.textContent = 'Crítico';
+                    profitMarginStatus.className = 'ml-2 px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800';
+                    profitMarginCard.className = 'result-card bg-white rounded-lg shadow-md p-6 border-t-4 border-red-500';
+                } else if (results.profitMargin < 15) {
+                    profitMarginStatus.textContent = 'Bajo';
+                    profitMarginStatus.className = 'ml-2 px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800';
+                    profitMarginCard.className = 'result-card bg-white rounded-lg shadow-md p-6 border-t-4 border-yellow-500';
+                } else {
+                    profitMarginStatus.textContent = 'Bueno';
+                    profitMarginStatus.className = 'ml-2 px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800';
+                    profitMarginCard.className = 'result-card bg-white rounded-lg shadow-md p-6 border-t-4 border-green-500';
+                }
+                
+                const roiValue = document.getElementById('roi-value');
+                const roiStatus = document.getElementById('roi-status');
+                const roiCard = document.getElementById('roi-card');
+                
+                roiValue.textContent = `${results.roi.toFixed(1)}%`;
+                
+                if (results.roi < 0) {
+                    roiStatus.textContent = 'Crítico';
+                    roiStatus.className = 'ml-2 px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800';
+                    roiCard.className = 'result-card bg-white rounded-lg shadow-md p-6 border-t-4 border-red-500';
+                } else if (results.roi < simulationData.variables.desiredProfit) {
+                    roiStatus.textContent = 'Bajo';
+                    roiStatus.className = 'ml-2 px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800';
+                    roiCard.className = 'result-card bg-white rounded-lg shadow-md p-6 border-t-4 border-yellow-500';
+                } else {
+                    roiStatus.textContent = 'Bueno';
+                    roiStatus.className = 'ml-2 px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800';
+                    roiCard.className = 'result-card bg-white rounded-lg shadow-md p-6 border-t-4 border-green-500';
+                }
+                
+                const breakevenValue = document.getElementById('breakeven-value');
+                const breakevenCard = document.getElementById('breakeven-card');
+                
+                breakevenValue.textContent = `$${results.breakEvenRevenue.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                breakevenCard.className = 'result-card bg-white rounded-lg shadow-md p-6 border-t-4 border-blue-500';
+
+                const breakevenUnitsValue = document.getElementById('breakeven-units-value');
+                const breakevenUnitsCard = document.getElementById('breakeven-units-card');
+
+                breakevenUnitsValue.textContent = `${results.breakEvenUnits.toFixed(0)}`;
+                breakevenUnitsCard.className = 'result-card bg-white rounded-lg shadow-md p-6 border-t-4 border-blue-500';
+
+                const npvValue = document.getElementById('npv-value');
+                const npvCard = document.getElementById('npv-card');
+
+                npvValue.textContent = `$${results.npv.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                npvCard.className = 'result-card bg-white rounded-lg shadow-md p-6 border-t-4 border-green-500';
+
+                const contributionMarginValue = document.getElementById('contribution-margin-value');
+                const contributionMarginCard = document.getElementById('contribution-margin-card');
+
+                contributionMarginValue.textContent = `${results.contributionMargin.toFixed(1)}%`;
+                contributionMarginCard.className = 'result-card bg-white rounded-lg shadow-md p-6 border-t-4 border-purple-500';
+
+                const investmentRecoveryValue = document.getElementById('investment-recovery-value');
+                const investmentRecoveryCard = document.getElementById('investment-recovery-card');
+
+                investmentRecoveryValue.textContent = `${results.investmentRecoveryTime.toFixed(1)}`;
+                investmentRecoveryCard.className = 'result-card bg-white rounded-lg shadow-md p-6 border-t-4 border-orange-500';
+                
+                // Display recommendations
+                const recommendationsList = document.getElementById('recommendations-list');
+                recommendationsList.innerHTML = '';
+                
+                results.recommendations.forEach(rec => {
+                    const li = document.createElement('li');
+                    li.className = 'flex items-start';
+                    
+                    let iconColor, bgColor;
+                    
+                    switch(rec.type) {
+                        case 'danger':
+                            iconColor = 'text-red-500';
+                            bgColor = 'bg-red-100';
+                            break;
+                        case 'warning':
+                            iconColor = 'text-yellow-500';
+                            bgColor = 'bg-yellow-100';
+                            break;
+                        case 'success':
+                            iconColor = 'text-green-500';
+                            bgColor = 'bg-green-100';
+                            break;
+                        default:
+                            iconColor = 'text-blue-500';
+                            bgColor = 'bg-blue-100';
+                    }
+                    
+                    li.innerHTML = `
+                        <div class="${bgColor} p-1 rounded-full mr-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ${iconColor}" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <p>${rec.text}</p>
+                    `;
+                    
+                    recommendationsList.appendChild(li);
+                });
+                
+                // Create monthly chart
+                const monthlyCtx = document.getElementById('monthly-chart').getContext('2d');
+                const monthlyLabels = results.monthlyProjections.map(data => `Mes ${data.month}`);
+                const monthlyRevenues = results.monthlyProjections.map(data => data.revenue);
+                const monthlyCosts = results.monthlyProjections.map(data => data.costs);
+                const monthlyProfits = results.monthlyProjections.map(data => data.profit);
+                
+                new Chart(monthlyCtx, {
+                    type: 'line',
+                    data: {
+                        labels: monthlyLabels,
+                        datasets: [
+                            {
+                                label: 'Ingresos',
+                                data: monthlyRevenues,
+                                borderColor: 'rgba(59, 130, 246, 1)',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                fill: true,
+                                tension: 0.4
+                            },
+                            {
+                                label: 'Costos',
+                                data: monthlyCosts,
+                                borderColor: 'rgba(239, 68, 68, 1)',
+                                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                fill: true,
+                                tension: 0.4
+                            },
+                            {
+                                label: 'Ganancias',
+                                data: monthlyProfits,
+                                borderColor: 'rgba(16, 185, 129, 1)',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                fill: true,
+                                tension: 0.4
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.parsed.y !== null) {
+                                            label += new Intl.NumberFormat('es-MX', {
+                                                style: 'currency',
+                                                currency: 'MXN'
+                                            }).format(context.parsed.y);
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return '$' + value.toLocaleString('es-MX');
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                // Create yearly chart
+                const yearlyCtx = document.getElementById('yearly-chart').getContext('2d');
+                const yearlyLabels = results.yearlyProjections.map(data => `Año ${data.year}`);
+                const yearlyRevenues = results.yearlyProjections.map(data => data.revenue);
+                const yearlyCosts = results.yearlyProjections.map(data => data.costs);
+                const yearlyProfits = results.yearlyProjections.map(data => data.profit);
+                
+                new Chart(yearlyCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: yearlyLabels,
+                        datasets: [
+                            {
+                                label: 'Ingresos',
+                                data: yearlyRevenues,
+                                backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                            },
+                            {
+                                label: 'Costos',
+                                data: yearlyCosts,
+                                backgroundColor: 'rgba(239, 68, 68, 0.7)',
+                            },
+                            {
+                                label: 'Ganancias',
+                                data: yearlyProfits,
+                                backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.parsed.y !== null) {
+                                            label += new Intl.NumberFormat('es-MX', {
+                                                style: 'currency',
+                                                currency: 'MXN'
+                                            }).format(context.parsed.y);
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return '$' + value.toLocaleString('es-MX');
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Event listeners for navigation
+            document.getElementById('next-step1').addEventListener('click', function() {
+                updateProgress(2);
+            });
+            
+            document.getElementById('prev-step2').addEventListener('click', function() {
+                updateProgress(1);
+            });
+            
+            document.getElementById('next-step2').addEventListener('click', function() {
+                updateProgress(3);
+            });
+            
+            document.getElementById('prev-step3').addEventListener('click', function() {
+                updateProgress(2);
+            });
+            
+            document.getElementById('next-step3').addEventListener('click', function() {
+                updateProgress(4);
+            });
+            
+            document.getElementById('prev-step4').addEventListener('click', function() {
+                updateProgress(3);
+            });
+            
+            document.getElementById('calculate-results').addEventListener('click', function() {
+                const data = collectData();
+                const results = calculateResults(data);
+                simulationData.results = results;
+                
+                displayResults(results);
+                updateProgress(5);
+            });
+            
+            document.getElementById('prev-step5').addEventListener('click', function() {
+                updateProgress(1);
+            });
+            
+            document.getElementById('restart-simulation').addEventListener('click', function() {
+                location.reload();
+            });
+            
+            // Event listeners for adding items
+            document.getElementById('add-product').addEventListener('click', addProduct);
+            document.getElementById('add-investment').addEventListener('click', addInvestment);
+            
+            // Event listeners for expense inputs
+            document.querySelectorAll('#step2 input').forEach(input => {
+                input.addEventListener('input', updateExpenseTotals);
+            });
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'92feb0fa4786f78e',t:'MTc0NDU4NjM5OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
